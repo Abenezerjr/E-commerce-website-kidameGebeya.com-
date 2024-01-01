@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 
@@ -23,10 +24,10 @@ def store(request, category_slug=None):
         products = Product.objects.all().filter(is_available=True).order_by('id')
         paginator = Paginator(products, 3)
         page = request.GET.get("page")
-        paged_products=paginator.get_page(page)
+        paged_products = paginator.get_page(page)
         product_count = products.count()
     context = {
-        "products":  paged_products,
+        "products": paged_products,
         "product_count": product_count,
 
     }
@@ -45,3 +46,19 @@ def product_detail(request, category_slug, product_slug):
         'in_cart': in_cart,
     }
     return render(request, 'store/product_detail.html', context)
+
+
+def search(request):
+    # products = None
+    if 'Keyword' in request.GET:
+        Keyword = request.GET['Keyword']
+        if Keyword:
+            products = Product.objects.order_by('-created_date'). \
+                filter(Q(description__icontains=Keyword) | Q(product_name__icontains=Keyword))
+            product_count = products.count()
+    context = {
+        "products": products,
+        "product_count":product_count,
+    }
+
+    return render(request, 'store/store.html', context)
